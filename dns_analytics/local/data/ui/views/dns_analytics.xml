@@ -1,0 +1,236 @@
+<dashboard>
+  <label>DNS Exfiltration Analytics</label>
+  <row>
+    <panel>
+      <title>DNS Packet Size Distribution By Host (Today)</title>
+      <chart>
+        <title>Look for High number of same-sized DNS requests from an internal host</title>
+        <search>
+          <query>| tstats `summariesonly` count FROM datamodel=Network_Resolution WHERE DNS.message_type="Query" GROUPBY DNS.query, DNS.src | `drop_dm_object_name("DNS")` `clean_dns_query("query")` | eval Length=len(query)  | convert num(Length) | stats count by Length, src | sort -Length, count | reverse | table src Length count | head 1000</query>
+          <earliest>@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">scatter</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Top 10 DNS Requests By Internal Clients per Hour</title>
+      <chart>
+        <title>Look for High number of DNS requests occurring from a particular client</title>
+        <search>
+          <query>| tstats `summariesonly` prestats=t count FROM datamodel=Network_Resolution WHERE DNS.message_type="Query" GROUPBY _time, DNS.src | `drop_dm_object_name("DNS")` | timechart span=1h limit=10 usenull=f useother=f count AS Requests by src</query>
+          <earliest>-48h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Beaconing Activity</title>
+      <chart>
+        <title>Look for High Counts and Low Variance (i.e Consistent beaconing every x Seconds)</title>
+        <search>
+          <query>index=msad sourcetype=MSAD:NT5:DNS NOT query="*microsoft*" NOT query="*amazon*" NOT query="*bing*" NOT query="*skype*" NOT query="*bbc*" NOT query="*elasticsearch*" NOT query="*yammer*" NOT query="*nexus*" NOT query="*google*" NOT query="*facebook*" NOT query="*office*" NOT query="*ucas*" NOT query="*salesforce*" NOT query="*sophos*" | fields _time, query  `clean_dns_query("query")` | streamstats current=f last(_time) as next_time by query | eval gap=next_time - _time | stats count avg(gap) AS AverageBeaconTime var(gap) AS VarianceBeaconTime BY query | sort -count | where VarianceBeaconTime &lt; 60 AND count &gt; 2 AND AverageBeaconTime&gt;1.0 | table  query VarianceBeaconTime  count AverageBeaconTime</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.minimumNumber">-10</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bubble</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Beaconing Activity By Domain Last 7 days (Click Query for Domain Dossier)</title>
+      <table>
+        <title>Look for High Count, small variance and possibly rounded Averages (i.e every 60 seconds etc)</title>
+        <search>
+          <query>index=msad sourcetype=MSAD:NT5:DNS message_type="Query" NOT query="*microsoft*" NOT query="*amazon*" NOT query="*bing*" NOT query="*skype*" NOT query="*bbc*" NOT query="*elasticsearch*" NOT query="*yammer*" NOT query="*nexus*" NOT query="*google*" NOT query="*facebook*" NOT query="*office*" NOT query="*ucas*" NOT query="*salesforce*" NOT query="*sophos*" `clean_dns_query("query")` | fields _time, src, query | streamstats current=f last(_time) as next_time by query | eval gap=next_time - _time | stats count dc(src) AS NumHosts avg(gap) AS AverageBeaconTime var(gap) AS VarianceBeaconTime BY query | sort -count | where VarianceBeaconTime &lt; 60 AND AverageBeaconTime &gt; 0</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+        <drilldown target="new_window">
+          <condition field="query">
+            <link>http://centralops.net/co/DomainDossier.aspx?addr=$click.value2$&amp;&amp;dom_whois=true&amp;dom_dns=true&amp;net_whois=true</link>
+          </condition>
+        </drilldown>
+      </table>
+      
+    </panel>
+    <panel>
+      <title>Domains with High Number of sub domains (Click for Domain Dossier)</title>
+      <table>
+        <title>Can be indicative of random or DGA domains</title>
+        <search>
+          <query>index=msad sourcetype=MSAD:NT5:DNS NOT query="*microsoft*" NOT query="*amazon*" NOT query="*bing*" NOT query="*skype*" NOT query="*bbc*" NOT query="*elasticsearch*" NOT query="*yammer*" NOT query="*nexus*" NOT query="*google*" NOT query="*facebook*" NOT query="*office*" NOT query="*ucas*" NOT query="*salesforce*" NOT query="*sophos*" `clean_dns_query("query")` | rex field=query "(?P&lt;AAA&gt;.*?)\.(net|co\.uk|com|co|org|arpa)$" | rex field=AAA "\.?(?&lt;rest&gt;[^\.]*)$"| eval pos = if(length(rest) &gt; 0, length(AAA) - length(rest), -1) | eval Host=substr(AAA,0,pos-1)| eval DomainName=substr(query,pos+1,len(query)) | stats dc(Host) AS HostsPerDomain BY DomainName | sort - HostsPerDomain</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+        <drilldown target="new_window">
+          <condition field="DomainName">
+            <link>http://centralops.net/co/DomainDossier.aspx?addr=$click.value2$&amp;&amp;dom_whois=true&amp;dom_dns=true&amp;net_whois=true</link>
+          </condition>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>DNS Requests By Resource Type</title>
+      <chart>
+        <title>Look for Spikes or sudden changes by Type</title>
+        <search>
+          <query>| tstats `summariesonly` prestats=t count FROM datamodel=Network_Resolution GROUPBY _time, DNS.record_type | `drop_dm_object_name("DNS")` | timechart span=1h count BY record_type</query>
+          <earliest>-48h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Number of DNS lookups by Client (Deviation from Norm )</title>
+      <table>
+        <title>Look for High Z_Score Values</title>
+        <search>
+          <query>| tstats `summariesonly` prestats=t count FROM datamodel=Network_Resolution WHERE DNS.message_type="Query" GROUPBY _time, DNS.src | `drop_dm_object_name("DNS")` | bucket _time span=1h | stats count as NumDNSLookups by src, _time | stats count AS NumOfDNSLookups avg(NumDNSLookups) as avg stdev(NumDNSLookups) as stdev latest(NumDNSLookups) as latest by src | eval z_score = round(abs(avg - latest)/max(stdev,0.1),2) | sort - z_score | WHERE z_score&gt;0 | table src latest  z_score stdev | rename latest AS "Domains Queried"</query>
+          <earliest>-72h</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Clients Contacting More Distinct Domains Names (Deviation from Norm)</title>
+      <table>
+        <title>Look for High Z_Score Values</title>
+        <search>
+          <query>index=msad sourcetype=MSAD:NT5:DNS message_type="Query" NOT query="*microsoft*" NOT query="*amazon*" NOT query="*bing*" NOT query="*skype*" NOT query="*bbc*" NOT query="*elasticsearch*" NOT query="*yammer*" NOT query="*nexus*" NOT query="*google*" NOT query="*facebook*" NOT query="*office*" NOT query="*ucas*" NOT query="*salesforce*" NOT query="*sophos*" | fields query, src, _time | bucket _time span=1h |stats dc(query) as NumDomains by src, _time | stats count avg(NumDomains) as avg stdev(NumDomains) as stdev latest(NumDomains) as latest by src | eval z_score = round(abs(avg - latest)/max(stdev,0.1),2) | sort - z_score</query>
+          <earliest>-48h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Total Number of Domains Queried By Client (Deviation from Norm)</title>
+      <table>
+        <title>Look for High Z_Score Values</title>
+        <search>
+          <query>index=msad sourcetype=MSAD:NT5:DNS message_type="Query" NOT query="*microsoft*" NOT query="*amazon*" NOT query="*bing*" NOT query="*skype*" NOT query="*bbc*" NOT query="*elasticsearch*" NOT query="*yammer*" NOT query="*nexus*" NOT query="*google*" NOT query="*facebook*" NOT query="*office*" NOT query="*ucas*" NOT query="*salesforce*" NOT query="*sophos*" | fields _time, src | bucket _time span=1h | stats count as NumDNSLookups by src, _time | stats count AS NumOfDNSLookups avg(NumDNSLookups) as avg stdev(NumDNSLookups) as stdev latest(NumDNSLookups) as latest by src | eval z_score = round(abs(avg - latest)/max(stdev,0.1),2) | sort - z_score | search z_score &gt; 0 | rename latest AS "Domains Queried"</query>
+          <earliest>-72h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

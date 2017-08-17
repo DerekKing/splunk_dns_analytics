@@ -1,0 +1,32 @@
+[app/ui]
+version = 6.6.2
+modtime = 1502982667.710202000
+
+[app/launcher]
+version = 6.6.2
+modtime = 1502982667.713192000
+
+[views/dns_analytics]
+version = 6.6.2
+modtime = 1502982924.518958000
+
+[macros/summariesonly]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = admin
+version = 6.6.2
+modtime = 1502982977.148947000
+
+[macros/clean_dns_query%281%29]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = admin
+version = 6.6.2
+modtime = 1502983069.272080000
+
+[macros/drop_dm_object_name%281%29]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = admin
+version = 6.6.2
+modtime = 1502983148.910900000
