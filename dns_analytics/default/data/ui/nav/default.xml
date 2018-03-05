@@ -4,4 +4,8 @@
   <view name="reports" />
   <view name="alerts" />
   <view name="dashboards" />
+  <collection label="DNS Dashboards">
+    <view name="dns_analytics"/>
+    <view name="dns_analytics_non_cim" />
+  </collection>
 </nav>

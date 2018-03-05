@@ -33,3 +33,57 @@ export = system
 [viewstates]
 access = read : [ * ], write : [ * ]
 export = system
+[app/ui]
+version = 7.0.0
+modtime = 1517594349.446627000
+
+[app/launcher]
+version = 7.0.0
+modtime = 1517594349.449615000
+
+[props/dns%3A08%3Asummary]
+owner = admin
+version = 7.0.0
+modtime = 1517594472.246314000
+
+[props/dns%3A08%3Adetailed]
+owner = admin
+version = 7.0.0
+modtime = 1517597795.438071000
+
+[views/dns_analytics]
+owner = admin
+version = 7.0.0
+modtime = 1518837840.905423000
+
+[tags/eventtype%3Dwindows%253Adns%253Aquery%253Aevents]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = admin
+version = 7.0.0
+modtime = 1517934106.418835000
+
+[eventtypes/win%3Adns%3Aquery]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = admin
+version = 7.0.0
+modtime = 1517934116.871153000
+
+[tags/eventtype%3Dwin%253Adns%253Aquery]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = admin
+version = 7.0.0
+modtime = 1517934116.881738000
+
+[views/dns_analytics_non_cim]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = admin
+version = 7.0.0
+modtime = 1518837958.931390000
+
+[nav/default]
+version = 7.0.0
+modtime = 1518379072.999632000
