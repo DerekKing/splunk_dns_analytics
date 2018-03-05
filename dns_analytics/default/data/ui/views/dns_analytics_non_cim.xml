@@ -1,0 +1,253 @@
+<form>
+  <label>DNS Analytics_NON_CIM</label>
+  <fieldset submitButton="false">
+    <input type="time" token="tok_time" searchWhenChanged="true">
+      <label>Time Period</label>
+      <default>
+        <earliest>-4h@m</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>DNS Packet Size Distribution By Host</title>
+      <chart>
+        <title>Look for High number of same-sized DNS requests from an internal host</title>
+        <search>
+          <query>sourcetype=bro_dns OR sourcetype=dns:08:summary message_type="Query" | eval Length=len(query) | stats count by Length, src | sort -Length, count | table src Length count | head 1000</query>
+          <earliest>$tok_time.earliest$</earliest>
+          <latest>$tok_time.latest$</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">scatter</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Top 10 DNS Requests By Internal Clients per Hour</title>
+      <chart>
+        <title>Look for High number of DNS requests occurring from a particular client</title>
+        <search>
+          <query>sourcetype=bro_dns OR sourcetype=dns:08:summary message_type="Query" | timechart span=1h limit=10 usenull=f useother=f count AS Requests by src</query>
+          <earliest>$tok_time.earliest$</earliest>
+          <latest>$tok_time.latest$</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Beaconing Activity</title>
+      <chart>
+        <title>Look for High Counts and Low Variance (i.e Consistent beaconing every x Seconds)</title>
+        <search>
+          <query>sourcetype=bro_dns OR sourcetype=dns:08:summary | fields _time, query | streamstats current=f last(_time) as last_time by query | eval gap=last_time - _time | stats count avg(gap) AS AverageBeaconTime var(gap) AS VarianceBeaconTime BY query | eval AverageBeaconTime=round(AverageBeaconTime,0), VarianceBeaconTime=round(VarianceBeaconTime,0)  | sort -count  | table  query VarianceBeaconTime  count AverageBeaconTime</query>
+          <earliest>$tok_time.earliest$</earliest>
+          <latest>$tok_time.latest$</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.minimumNumber">-10</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bubble</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Beaconing Activity By Domain  (Click Query for Domain Dossier)</title>
+      <table>
+        <title>Look for High Count, small variance and possibly rounded Averages (i.e every 60 seconds etc)</title>
+        <search>
+          <query>sourcetype=bro_dns OR sourcetype=dns:08:summary message_type="Query" NOT query="*microsoft*" NOT query="*amazon*" NOT query="*bing*" NOT query="*skype*" NOT query="*bbc*" NOT query="*yammer*" NOT query="*nexus*" NOT query="*google*" NOT query="*facebook*" NOT query="*office*" NOT query="*ucas*" NOT query="*salesforce*" NOT query="*sophos*" | fields _time, src, query | streamstats current=f last(_time) as last_time by query | eval gap=last_time - _time | stats count dc(src) AS NumHosts avg(gap) AS AverageBeaconTime var(gap) AS VarianceBeaconTime BY query | sort -count </query>
+          <earliest>$tok_time.earliest$</earliest>
+          <latest>$tok_time.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+        <drilldown target="new_window">
+          <condition field="query">
+            <link>http://centralops.net/co/DomainDossier.aspx?addr=$click.value2$&amp;&amp;dom_whois=true&amp;dom_dns=true&amp;net_whois=true</link>
+          </condition>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <title>Domains with High Number of sub domains (Click for Domain Dossier)</title>
+      <table>
+        <title>Can be indicative of random or DGA domains</title>
+        <search>
+          <query>sourcetype=bro_dns OR sourcetype=dns:08:summary NOT query="*microsoft*" NOT query="*amazon*" NOT query="*bing*" NOT query="*skype*" NOT query="*bbc*" NOT query="*yammer*" NOT query="*nexus*" NOT query="*google*" NOT query="*facebook*" NOT query="*office*" NOT query="*ucas*" NOT query="*salesforce*" NOT query="*sophos*"  | rex field=query "(?P&lt;AAA&gt;.*?)\.(net|co\.uk|com|co|org|arpa)$" | rex field=AAA "\.?(?&lt;rest&gt;[^\.]*)$"| eval pos = if(length(rest) &gt; 0, length(AAA) - length(rest), -1) | eval Host=substr(AAA,0,pos-1)| eval DomainName=substr(query,pos+1,len(query)) | stats dc(Host) AS HostsPerDomain BY DomainName | sort - HostsPerDomain</query>
+          <earliest>$tok_time.earliest$</earliest>
+          <latest>$tok_time.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+        <drilldown target="new_window">
+          <condition field="DomainName">
+            <link>http://centralops.net/co/DomainDossier.aspx?addr=$click.value2$&amp;&amp;dom_whois=true&amp;dom_dns=true&amp;net_whois=true</link>
+          </condition>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>DNS Requests By Resource Type</title>
+      <chart>
+        <title>Look for Spikes or sudden changes by Type</title>
+        <search>
+          <query>sourcetype=bro_dns OR sourcetype=dns:08:summary | timechart span=1h count BY record_type</query>
+          <earliest>$tok_time.earliest$</earliest>
+          <latest>$tok_time.latest$</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Number of DNS lookups by Client (Deviation from Norm )</title>
+      <table>
+        <title>Look for High Z_Score Values</title>
+        <search>
+          <query>sourcetype=bro_dns OR sourcetype=dns:08:summary message_type="Query" | bucket _time span=1h | stats count as NumDNSLookups by src, _time | stats count AS NumOfDNSLookups avg(NumDNSLookups) as avg stdev(NumDNSLookups) as stdev latest(NumDNSLookups) as latest by src | eval z_score = round(abs(avg - latest)/max(stdev,0.1),2) | sort - z_score | WHERE z_score&gt;0 | table src latest  z_score stdev | rename latest AS "Domains Queried"</query>
+          <earliest>$tok_time.earliest$</earliest>
+          <latest>$tok_time.latest$</latest>
+        </search>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Clients Contacting More Distinct Domains Names (Deviation from Norm)</title>
+      <table>
+        <title>Look for High Z_Score Values</title>
+        <search>
+          <query>sourcetype=dns:08:summary OR sourcetype=bro_dns message_type="Query" NOT query="*microsoft*" NOT query="*amazon*" NOT query="*bing*" NOT query="*skype*" NOT query="*bbc*" NOT query="*yammer*" NOT query="*nexus*" NOT query="*google*" NOT query="*facebook*" NOT query="*office*" NOT query="*ucas*" NOT query="*salesforce*" NOT query="*sophos*" | fields query, src, _time | bucket _time span=1h |stats dc(query) as NumDomains by src, _time | stats count avg(NumDomains) as avg stdev(NumDomains) as stdev latest(NumDomains) as latest by src | eval z_score = round(abs(avg - latest)/max(stdev,0.1),2) | sort - z_score | where z_score &gt; 0</query>
+          <earliest>$tok_time.earliest$</earliest>
+          <latest>$tok_time.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Total Number of Domains Queried By Client (Deviation from Norm)</title>
+      <table>
+        <title>Look for High Z_Score Values</title>
+        <search>
+          <query>sourcetype=bro_dns OR sourcetype=dns:08:summary message_type="Query" NOT query="*microsoft*" NOT query="*amazon*" NOT query="*bing*" NOT query="*skype*" NOT query="*bbc*" NOT query="*yammer*" NOT query="*nexus*" NOT query="*google*" NOT query="*facebook*" NOT query="*office*" NOT query="*ucas*" NOT query="*salesforce*" NOT query="*sophos*" | fields _time, src | bucket _time span=1h | stats count as NumDNSLookups by src, _time | stats count AS NumOfDNSLookups avg(NumDNSLookups) as avg stdev(NumDNSLookups) as stdev latest(NumDNSLookups) as latest by src | eval z_score = round(abs(avg - latest)/max(stdev,0.1),2) | sort - z_score | search z_score &gt; 0 | rename latest AS "Domains Queried"</query>
+          <earliest>$tok_time.earliest$</earliest>
+          <latest>$tok_time.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>
